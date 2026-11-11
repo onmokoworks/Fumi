@@ -14,8 +14,9 @@ import { FileList } from './components/FileList'
 import { Voices } from './components/Voices'
 import { Help } from './components/Help'
 import { Menu, type Settings, type Theme } from './components/Menu'
+import { DEFAULT_FONT, FontPicker } from './components/FontPicker'
 
-type Overlay = null | 'menu' | 'list' | 'voices' | 'export' | 'help'
+type Overlay = null | 'menu' | 'list' | 'voices' | 'export' | 'help' | 'fonts'
 export type TtsReq = {
   text: string
   reference?: string
@@ -55,6 +56,14 @@ function loadSettings(): Settings {
     readAction: ls.get('readAction') !== '0',
     // 読み上げ機能。初めはオフ（以前から使っている環境＝サーバー設定がある場合はオン）
     tts: ls.get('tts') != null ? ls.get('tts') === '1' : ls.get('server') != null,
+    font: ls.get('font') || DEFAULT_FONT,
+    fontFavs: (() => {
+      try {
+        return JSON.parse(ls.get('fontFavs') ?? 'null') ?? [DEFAULT_FONT]
+      } catch {
+        return [DEFAULT_FONT]
+      }
+    })(),
   }
 }
 
@@ -174,7 +183,7 @@ export default function App() {
   const player = useRef<{ cancel: boolean; audio?: HTMLAudioElement } | null>(null)
   const statusTimer = useRef<number | undefined>(undefined)
 
-  const { theme, size, server, serverDir, tts } = settings
+  const { theme, size, server, serverDir, tts, font } = settings
   const dir: Direction = meta.direction ?? ((ls.get('direction') as Direction) || 'vertical')
 
   const set = useCallback((p: Partial<Settings>) => {
@@ -187,6 +196,8 @@ export default function App() {
       ls.set('autostart', n.autostart ? '1' : '0')
       ls.set('readAction', n.readAction ? '1' : '0')
       ls.set('tts', n.tts ? '1' : '0')
+      ls.set('font', n.font)
+      ls.set('fontFavs', JSON.stringify(n.fontFavs))
       return n
     })
   }, [])
@@ -355,6 +366,10 @@ export default function App() {
   }, [name])
 
   // ---------- 見た目 ----------
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--font', `"${font}", var(--font-fallback)`)
+  }, [font])
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -731,6 +746,7 @@ export default function App() {
       if (!(mod && k === 'h')) return act(() => {})
     }
     if (e.key === 'Escape') {
+      if (overlay === 'fonts') return // 書体画面は自分で Esc を扱う（試していた書体を戻す）
       if (overlay && !progress) {
         setOverlay(null)
         ta.current?.focus()
@@ -1005,6 +1021,7 @@ export default function App() {
           rate={rate}
           rates={RATES}
           onRate={changeRate}
+          onFonts={() => setOverlay('fonts')}
         />
       )}
 
@@ -1050,6 +1067,16 @@ export default function App() {
       )}
 
       {overlay === 'help' && <Help tts={tts} />}
+
+      {overlay === 'fonts' && (
+        <FontPicker
+          current={font}
+          favorites={settings.fontFavs}
+          onPick={(f) => set({ font: f })}
+          onFavorites={(favs) => set({ fontFavs: favs })}
+          onClose={() => (setOverlay(null), focusEditor())}
+        />
+      )}
     </div>
   )
 }

@@ -62,6 +62,48 @@ fn migrate_old_app_dirs() {
     }
 }
 
+/// Windows に入っているフォントのファミリー名（レジストリから。HKLM とユーザー別の HKCU）
+#[tauri::command]
+fn list_fonts() -> Vec<String> {
+    // 名前の末尾の太さ（モリサワ等の B / DB / L / R / W3 なども）を外してファミリー名にまとめる
+    const WEIGHTS: [&str; 39] = [
+        "Regular", "Medium", "Light", "Bold", "Demibold", "DemiBold", "SemiBold", "Semibold", "Semilight",
+        "SemiLight", "Italic", "Black", "Heavy", "Thin", "ExtraLight", "ExtraBold", "UltraLight", "Book",
+        "Oblique", "Variable", "B", "DB", "EB", "EL", "H", "L", "M", "R", "U", "UB", "UL", "W2", "W3", "W4",
+        "W5", "W6", "W7", "W8", "W9",
+    ];
+    let mut out = std::collections::BTreeSet::new();
+    let mut names: Vec<String> = Vec::new();
+    #[cfg(windows)]
+    {
+        use winreg::enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE};
+        use winreg::RegKey;
+        // レジストリは UTF-16 のまま読む（reg コマンドだと日本語名が文字化けする）
+        for root in [HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER] {
+            if let Ok(k) = RegKey::predef(root).open_subkey(r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts") {
+                names.extend(k.enum_values().flatten().map(|(n, _)| n));
+            }
+        }
+    }
+    {
+        for name in &names {
+            let name = name.trim_end_matches(';').trim();
+            let name = name.split(" (").next().unwrap_or(name);
+            for part in name.split(" & ") {
+                let mut words: Vec<&str> = part.split_whitespace().collect();
+                while words.len() > 1 && WEIGHTS.contains(words.last().unwrap()) {
+                    words.pop();
+                }
+                let fam = words.join(" ");
+                if !fam.is_empty() && !fam.starts_with('@') {
+                    out.insert(fam);
+                }
+            }
+        }
+    }
+    out.into_iter().collect()
+}
+
 /// Irodori-TTS-Server を探す（実行ファイルの上の階層と、ホームフォルダの直下）
 #[tauri::command]
 fn find_server_dir() -> Option<String> {
@@ -717,7 +759,8 @@ pub fn run() {
             tts_durations,
             find_server_dir,
             move_doc,
-            stat_docs
+            stat_docs,
+            list_fonts
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

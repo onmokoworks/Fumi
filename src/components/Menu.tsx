@@ -14,6 +14,8 @@ export type Settings = {
   autostart: boolean
   readAction: boolean
   tts: boolean
+  font: string
+  fontFavs: string[]
 }
 
 export function Menu(props: {
@@ -26,6 +28,7 @@ export function Menu(props: {
   rate: number
   rates: number[]
   onRate: (r: number) => void
+  onFonts: () => void
 }) {
   const s = props.settings
   const [state, setState] = useState<ServerState>('stopped')
@@ -110,6 +113,12 @@ export function Menu(props: {
                 </button>
               ))}
             </div>
+          </div>
+          <div className="row">
+            <span className="label">書体</span>
+            <button className="fontbtn" style={{ fontFamily: `"${s.font}"` }} onClick={props.onFonts}>
+              {s.font}
+            </button>
           </div>
           <div className="row">
             <span className="label">文字</span>

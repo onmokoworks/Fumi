@@ -7,7 +7,8 @@
   --line: #cdcdca;
   --panel: #ececea;
   --sel: rgba(0, 0, 0, 0.1);
-  --font: 'Yu Mincho', 'YuMincho', '游明朝', 'Noto Serif JP', serif;
+  --font-fallback: 'Yu Mincho', 'YuMincho', '游明朝', 'Noto Serif JP', serif;
+  --font: var(--font-fallback);
   --ui: 'Yu Gothic UI', 'Meiryo UI', system-ui, sans-serif;
   color-scheme: light;
 }
@@ -714,4 +715,84 @@ select:focus {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ---------- 書体 ---------- */
+
+.panel.fonts {
+  width: min(760px, calc(100vw - 2rem));
+}
+
+.fontlist {
+  list-style: none;
+}
+
+.fontlist li {
+  display: grid;
+  grid-template-columns: 1.6rem 13rem 1fr;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0.4rem;
+  cursor: pointer;
+}
+
+.fontlist li:hover,
+.fontlist li.cur {
+  background: var(--sel);
+}
+
+.fontlist .star {
+  border: none;
+  padding: 0;
+  color: var(--muted);
+  font-size: 15px;
+  background: transparent !important;
+}
+
+.fontlist .star.on {
+  color: var(--text);
+}
+
+.fontlist .fname {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fontlist .fsample {
+  font-size: 17px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fontbtn {
+  min-width: 11rem;
+  text-align: left;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.chips button {
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  font-size: 12px;
+}
+
+.chips button.on {
+  background: var(--sel);
+  border-color: var(--muted);
+}
+
+.fontlist li.sel {
+  outline: 1px solid var(--muted);
+}
+
+.more {
+  align-self: center;
 }
