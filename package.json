@@ -1,0 +1,26 @@
+{
+  "name": "fumi",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "2.12.4",
+    "@tauri-apps/plugin-dialog": "2.8.4",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "yaml": "^2.8.3"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.12.4",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "6.0.1",
+    "typescript": "~5.9.3",
+    "vite": "8.0.10"
+  }
+}
